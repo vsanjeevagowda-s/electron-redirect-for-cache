@@ -1,13 +1,26 @@
 // Modules to control application life and create native browser window
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, session} = require('electron')
 const path = require('path')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+// console.log({ protocol });
+
 function createWindow () {
   // Create the browser window.
+// const content = new Buffer("you've been conned!");
+//   protocol.interceptBufferProtocol("http", (request, result) => {
+//     const url = request.url
+//     console.log('const url = request.url', url)
+//     console.log({ request })
+//     console.log()
+//     console.log({ result })
+//     // if (request.url === "http://www.google.com")
+//     return result(request);
+//   });
+
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -16,8 +29,21 @@ function createWindow () {
     }
   })
 
+  const filter = {
+    urls: ['*://edgeplayerpoc.blob.core.windows.net/*', 'http://localhost:3000/*']
+  }
+
+  const requestCallback = (details, callback) => {
+    console.log({ url: details.url });
+    const proxyPath = ''
+    // callback({ redirectURL: `http://google.com`})
+    callback({cancel: false, redirectURL: `http://localhost:9008/?url=${details.url}`, requestHeaders: details.requestHeaders })
+  }
+
+  mainWindow.webContents.session.webRequest.onBeforeRequest(filter, requestCallback )
+
   // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadURL('http://localhost:3000')
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
