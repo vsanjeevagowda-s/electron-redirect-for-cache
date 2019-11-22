@@ -1,6 +1,7 @@
 // Modules to control application life and create native browser window
 const {app, BrowserWindow, session} = require('electron')
 const path = require('path')
+const url  = require('url');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -30,14 +31,25 @@ function createWindow () {
   })
 
   const filter = {
-    urls: ['*://edgeplayerpoc.blob.core.windows.net/*', 'http://localhost:3000/*']
+    urls: ['<all_urls>']
   }
 
   const requestCallback = (details, callback) => {
     console.log({ url: details.url });
-    const proxyPath = ''
-    // callback({ redirectURL: `http://google.com`})
-    callback({cancel: false, redirectURL: `http://localhost:9008/?url=${details.url}`, requestHeaders: details.requestHeaders })
+    // console.log({ url })
+    const hostPath = url.parse(details.url).host;
+    // if (hostPath === "localhost:9008" || hostPath === "localhost:3000" || hostPath === "wpad" || hostPath === "devtools") {
+    //   callback({ cancel: false, requestHeaders: details.requestHeaders })
+    // } else {
+    //   callback({ cancel: false, redirectURL: `http://localhost:9008/?url=${details.url}`, requestHeaders: details.requestHeaders })
+    // }
+
+    const extent = path.extname(details.url)
+    if(extent === '.png' && hostPath !== "localhost:9008"){
+      callback({ cancel: false, redirectURL: `http://localhost:9008/?url=${details.url}`, requestHeaders: details.requestHeaders })
+    }else{
+      callback({ cancel: false })
+    }
   }
 
   mainWindow.webContents.session.webRequest.onBeforeRequest(filter, requestCallback )
